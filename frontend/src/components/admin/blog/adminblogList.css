@@ -1,0 +1,162 @@
+.wrapper-grid {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.admin-blog-list {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  font-size: 2.5rem;
+  color: #e67e22; /* Vibrant orange for heading */
+}
+
+/* Sử dụng Flexbox with better alignment */
+.blog-list-flex {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center align items */
+  gap: 40px; /* Increased gap for better spacing */
+  padding: 20px 0;
+}
+
+.blog-card {
+  flex: 0 0 calc(30% - 28px); /* Adjusted for 3 cards per row with spacing */
+  box-sizing: border-box;
+  background: linear-gradient(
+    135deg,
+    #ffffff 70%,
+    #fff3e6 100%
+  ); /* Gradient background */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(255, 126, 34, 0.2); /* Enhanced shadow */
+  border-radius: 20px; /* Larger radius */
+  padding: 2rem; /* Increased padding */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center; /* Center content */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 40px; /* Increased margin */
+  min-height: 450px; /* Increased minimum height to accommodate title */
+  text-align: center;
+  position: relative; /* Ensure proper layering */
+}
+
+.blog-card:hover {
+  transform: translateY(-10px); /* Larger lift effect */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2),
+    0 10px 20px rgba(255, 126, 34, 0.3); /* Stronger hover shadow */
+}
+
+@media (max-width: 900px) {
+  .blog-card {
+    flex: 0 0 calc(45% - 22px); /* 2 cards per row on medium screens */
+  }
+}
+
+@media (max-width: 600px) {
+  .blog-card {
+    flex: 0 0 90%; /* 1 card per row on small screens */
+  }
+}
+
+.blog-thumb {
+  width: 100%;
+  height: 250px; /* Increased height for larger cards */
+  object-fit: cover;
+  border-radius: 15px; /* Larger radius */
+  margin-bottom: 1.5rem; /* Increased margin */
+  border: 3px solid #ffddb3; /* Light orange border */
+}
+
+.blog-title {
+  font-size: 1.8rem; /* Increased font size */
+  font-weight: 700; /* Bolder text */
+  color: #1a1a1a;
+  margin-bottom: 1.5rem; /* Increased margin to ensure space for title */
+  line-height: 1.5;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+  word-wrap: break-word; /* Ensure long titles wrap */
+  max-width: 100%; /* Full width for title */
+  padding: 0 1rem; /* Add padding to prevent overflow */
+}
+
+.blog-actions {
+  display: flex;
+  gap: 2rem; /* Increased gap */
+  justify-content: center;
+  margin-top: 1.5rem; /* Increased margin */
+}
+
+.edit-btn,
+.delete-btn {
+  background-color: #ff8c42; /* Vibrant orange */
+  color: white;
+  padding: 12px 25px; /* Increased padding */
+  border-radius: 10px; /* Larger radius */
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem; /* Increased font size */
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 10px rgba(255, 140, 66, 0.3); /* Subtle shadow */
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  background-color: #ff7043; /* Slightly darker orange on hover */
+  transform: translateY(-3px); /* Larger lift effect */
+  box-shadow: 0 7px 15px rgba(255, 112, 67, 0.4);
+}
+
+.delete-btn {
+  background-color: #ffb380; /* Light orange for delete */
+}
+
+.delete-btn:hover {
+  background-color: #ff9f5c; /* Slightly darker light orange */
+}
+
+.load-more {
+  text-align: center;
+  margin-top: 3rem; /* Increased margin */
+}
+
+.load-more button {
+  padding: 15px 30px; /* Increased padding */
+  font-size: 1.3rem; /* Increased font size */
+  background: linear-gradient(90deg, #28a745, #2ecc71); /* Green gradient */
+  color: white;
+  border: none;
+  border-radius: 10px; /* Larger radius */
+  cursor: pointer;
+  transition: transform 0.3s ease, background 0.3s ease;
+  box-shadow: 0 7px 15px rgba(40, 167, 69, 0.3);
+}
+
+.load-more button:hover {
+  background: linear-gradient(
+    90deg,
+    #218838,
+    #27ae60
+  ); /* Darker green gradient */
+  transform: translateY(-4px); /* Larger lift effect */
+  box-shadow: 0 9px 18px rgba(33, 136, 56, 0.4);
+}
+
+.loading {
+  text-align: center;
+  font-size: 2rem; /* Increased font size */
+  margin-top: 4rem; /* Increased margin */
+  color: #666;
+  font-weight: 600;
+}

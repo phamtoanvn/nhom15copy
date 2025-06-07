@@ -1,0 +1,92 @@
+.blog-form {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem 3rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.blog-form h2 {
+  text-align: center;
+  color: #222;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.blog-form hr {
+  border: none;
+  height: 3px;
+  background-color: #6a0dad;
+  margin-bottom: 2rem;
+}
+
+.blog-form label {
+  display: block;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: #222;
+  font-size: 1.2rem;
+}
+
+.blog-form input[type="text"],
+.blog-form input[type="number"],
+.blog-form select,
+.blog-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 0.5rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  resize: vertical;
+  background-color: #f9f9f9;
+}
+
+.blog-form textarea {
+  min-height: 150px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-weight: normal;
+  margin-top: -1rem;
+  margin-bottom: 1.8rem;
+  font-size: 1.1rem;
+}
+
+.blog-form input[type="file"] {
+  margin-top: 0.5rem;
+}
+
+.blog-form button {
+  width: 100%;
+  padding: 16px 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ff7e5f, #feb47b);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+.blog-form button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.blog-form button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.blog-form img {
+  max-width: 300px;
+  margin-top: 15px;
+  border-radius: 8px;
+}

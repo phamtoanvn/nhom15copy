@@ -1,0 +1,438 @@
+/* Container */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  background: #f0f4f8;
+  padding: 20px;
+}
+
+:root {
+  --primary-color: #ff6200; /* Vibrant orange */
+  --secondary-color: #ff6200;
+  --form-bg: #e6effa; /* Light blue background */
+  --border-radius: 10px; /* Increased border radius */
+  --transition-smooth: 0.3s ease;
+}
+
+/* Category Section */
+.category-section {
+  flex: 1 1 350px;
+  padding: 20px;
+  border-right: 1px solid #e0e6ed;
+  background: white;
+  border-radius: var(--border-radius);
+}
+
+.section-title {
+  font-size: 28px; /* Increased size */
+  color: #2d3748;
+  margin-bottom: 25px; /* Increased spacing */
+  font-weight: 600;
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+}
+
+.category-item {
+  background: #fff3e6; /* Light orange background */
+  margin-bottom: 20px; /* Increased spacing */
+  border-radius: var(--border-radius);
+  border: 2px solid #e2e8f0; /* Thicker border */
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+  padding: 20px; /* Increased padding */
+  font-size: 22px; /* Increased text size */
+  min-height: 80px; /* Added minimum height for consistency */
+  display: flex;
+  align-items: center;
+}
+
+.category-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 6px 15px rgba(255, 98, 0, 0.3); /* Enhanced shadow */
+}
+
+.category-item.active {
+  background: #ffe0b2; /* Slightly darker orange */
+  border-color: var(--primary-color);
+}
+
+.category-content {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.category-name {
+  font-size: 22px; /* Increased text size */
+  color: #2d3748;
+  font-weight: 600; /* Increased weight for boldness */
+  flex-grow: 1;
+  margin-right: 15px; /* Added spacing */
+}
+
+.category-actions {
+  display: flex;
+  gap: 10px; /* Increased gap */
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 10px 15px; /* Increased padding */
+  font-size: 16px; /* Increased text size */
+  border: none;
+  border-radius: 6px; /* Increased radius */
+  cursor: pointer;
+  background: var(--primary-color);
+  color: white;
+  transition: all var(--transition-smooth);
+  height: 40px; /* Fixed height for consistency */
+  display: flex;
+  align-items: center;
+}
+
+.btn-edit:hover,
+.btn-delete:hover {
+  background: #e65c2e;
+}
+
+/* Form Styling for Editing Category */
+.edit-form {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Increased gap */
+  width: 100%;
+}
+
+.edit-input {
+  padding: 10px 15px; /* Increased padding */
+  font-size: 16px; /* Increased size */
+  border: 2px solid #e2e8f0; /* Thicker border */
+  border-radius: 6px; /* Increased radius */
+  flex: 1;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 6px rgba(255, 98, 0, 0.4); /* Enhanced shadow */
+}
+
+.btn-save,
+.btn-cancel {
+  padding: 10px 20px; /* Increased padding */
+  border: none;
+  border-radius: 6px; /* Increased radius */
+  cursor: pointer;
+  font-size: 16px; /* Increased size */
+  height: 40px; /* Fixed height */
+  display: flex;
+  align-items: center;
+}
+
+.btn-save {
+  background: var(--secondary-color);
+  color: white;
+}
+
+.btn-save:hover {
+  background: #218838;
+}
+
+.btn-cancel {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-cancel:hover {
+  background: #e65c2e;
+}
+
+/* Drinks Section */
+.drinks-section {
+  flex: 2 1 600px;
+  padding: 20px;
+  width: 100%;
+}
+
+.drinks-title {
+  font-size: 28px; /* Increased size */
+  color: #2d3748;
+  margin-bottom: 25px; /* Increased spacing */
+  font-weight: 600;
+}
+
+.drinks-list {
+  list-style: none;
+  padding: 0;
+}
+
+.drink-item {
+  background: white;
+  border: 2px solid #e2e8f0; /* Thicker border */
+  border-radius: var(--border-radius);
+  margin-bottom: 25px; /* Increased spacing */
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+  transition: all var(--transition-smooth);
+  position: relative;
+}
+
+.drink-item:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.drink-name {
+  font-size: 24px; /* Increased size */
+  color: #2d3748;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.drink-info {
+  display: flex;
+  gap: 25px; /* Increased gap */
+  align-items: flex-start;
+}
+
+.drink-details {
+  flex: 1;
+}
+
+.price-info {
+  font-size: 18px; /* Increased size */
+  color: #4a5568;
+  margin-bottom: 10px; /* Increased spacing */
+}
+
+.price-original {
+  color: #718096;
+}
+
+.price-discount {
+  color: #38a169;
+  font-weight: 500;
+}
+
+.price-final {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.drink-description {
+  color: #718096;
+  font-size: 18px; /* Increased size */
+  line-height: 1.6; /* Improved readability */
+  margin-top: 15px;
+}
+
+.drink-status {
+  display: inline-block;
+  padding: 5px 12px; /* Increased padding */
+  background: #e2e8f0;
+  color: #2d3748;
+  border-radius: 14px; /* Increased radius */
+  font-size: 16px; /* Increased size */
+}
+
+.drink-image {
+  width: 150px; /* Increased size */
+  height: 120px; /* Increased size */
+  object-fit: cover;
+  border-radius: 6px; /* Increased radius */
+  border: 2px solid #e2e8f0; /* Thicker border */
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.drink-actions {
+  display: flex;
+  gap: 15px; /* Increased gap */
+  margin-top: 20px;
+}
+
+/* Form Styling for Editing Drink */
+.drink-edit-form {
+  background: var(--form-bg);
+  padding: 25px; /* Increased padding */
+  border-radius: var(--border-radius);
+  border: 2px solid #e2e8f0; /* Thicker border */
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.drink-edit-form h2 {
+  font-size: 28px; /* Increased size */
+  color: #2d3748;
+  margin-bottom: 25px; /* Increased spacing */
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px; /* Increased spacing */
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Increased gap */
+}
+
+.form-group label {
+  font-size: 18px; /* Increased size */
+  color: #2d3748;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 15px; /* Increased padding */
+  border: 2px solid #e2e8f0; /* Thicker border */
+  border-radius: 6px; /* Increased radius */
+  font-size: 18px; /* Increased size */
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 6px rgba(255, 98, 0, 0.4); /* Enhanced shadow */
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 10px; /* Adjusted spacing */
+  vertical-align: middle; /* Align checkbox with text */
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 18px; /* Increased size */
+}
+
+.image-preview {
+  max-width: 150px; /* Increased size */
+  max-height: 120px; /* Increased size */
+  object-fit: cover;
+  border-radius: 6px; /* Increased radius */
+  border: 2px solid #e2e8f0; /* Thicker border */
+  margin-top: 10px;
+  display: block;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px; /* Increased gap */
+  margin-top: 25px; /* Increased spacing */
+}
+
+.btn-save {
+  padding: 12px 25px; /* Increased padding */
+  border: none;
+  border-radius: 6px; /* Increased radius */
+  cursor: pointer;
+  background: var(--secondary-color);
+  color: white;
+  font-size: 18px; /* Increased size */
+  font-weight: 500;
+  height: 50px; /* Increased height */
+  display: flex;
+  align-items: center;
+}
+
+.btn-save:hover {
+  background: #218838;
+}
+
+.btn-cancel {
+  padding: 12px 25px; /* Increased padding */
+  border: none;
+  border-radius: 6px; /* Increased radius */
+  cursor: pointer;
+  background: var(--primary-color);
+  color: white;
+  font-size: 18px; /* Increased size */
+  font-weight: 500;
+  height: 50px; /* Increased height */
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel:hover {
+  background: #e65c2e;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .category-section {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e6ed;
+  }
+
+  .drinks-section {
+    width: 100%;
+  }
+
+  .drink-info {
+    flex-direction: column;
+  }
+
+  .drink-image {
+    position: static;
+    margin-top: 20px;
+    width: 100%;
+    height: auto;
+    max-height: 250px;
+  }
+
+  .drink-edit-form {
+    width: 100%;
+  }
+
+  .image-preview {
+    width: 100%;
+    max-height: 250px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .btn-save,
+  .btn-cancel {
+    width: 100%;
+  }
+
+  .category-item {
+    font-size: 18px; /* Slightly reduced for mobile */
+    padding: 15px;
+    min-height: 70px;
+  }
+
+  .category-name {
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  .drinks-title {
+    font-size: 24px;
+  }
+
+  .drink-edit-form h2 {
+    font-size: 24px;
+  }
+}
