@@ -3,11 +3,11 @@
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #222;
   background-color: #f9f9f9;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   padding-bottom: 2rem;
   display: flex;
   flex-direction: column;
@@ -33,7 +33,7 @@ h1 {
 }
 
 .scroll-btn {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0,0,0,0.1);
   border: none;
   font-size: 2rem;
   cursor: pointer;
@@ -45,7 +45,7 @@ h1 {
 }
 
 .scroll-btn:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0,0,0,0.3);
 }
 
 .scroll-btn:disabled {
@@ -70,12 +70,6 @@ h1 {
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: x mandatory;
-  cursor: grab; /* Biểu tượng tay nắm mặc định */
-}
-
-.blog-carousel.dragging {
-  cursor: grabbing; /* Biểu tượng tay nắm khi kéo */
-  user-select: none; /* Ngăn chặn bôi đen khi kéo */
 }
 
 .blog-carousel::-webkit-scrollbar {
@@ -85,7 +79,7 @@ h1 {
 .blog-card {
   scroll-snap-align: start;
   background: white;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
   border-radius: 15px;
   cursor: pointer;
   flex-shrink: 0;
@@ -93,13 +87,13 @@ h1 {
   flex-direction: column;
   height: 350px;
   transition: transform 0.3s ease;
-  width: calc((1200px - 40px) / 4); /* Mỗi card chiếm 1/4 chiều rộng */
+  max-width: 500px; /* Mỗi card chiếm 1/4 chiều rộng */
   min-width: 0;
 }
 
 .blog-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.2);
 }
 
 .blog-thumb {
@@ -129,9 +123,9 @@ h1 {
   padding: 2rem 2.5rem;
   background: white;
   border-radius: 15px;
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 14px 35px rgba(0,0,0,0.12);
   color: #222;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   display: flex;
   flex-direction: column;
@@ -141,18 +135,22 @@ h1 {
 
 .back-btn {
   align-self: flex-start;
-  background: none;
+  padding: 8px 16px;
   border: none;
-  font-size: 1.25rem;
-  color: #007bff;
-  font-weight: 600;
+  background: linear-gradient(135deg, #0810f8, #bcb9dd); /* Gradient pastel cam */
+  color: white;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
   margin-bottom: 1.5rem;
-  transition: color 0.25s ease;
 }
 
 .back-btn:hover {
-  color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(248, 196, 180, 0.3);
+  filter: brightness(1.05);
 }
 
 .detail-title {
@@ -167,7 +165,7 @@ h1 {
   max-height: 450px;
   object-fit: contain;
   border-radius: 15px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
 }
 

@@ -323,19 +323,24 @@ export default function DrinkOptionsManager() {
 
                 <br />
 
-                <button type="button" className="remove-option-button" onClick={() => removeOptionInput(idx)} disabled={optionInputs.length === 1}>
-                  Xóa tùy chọn này
-                </button>
+                <div className="button-group">
+                    <button 
+                        type="button" 
+                        className="remove-option-button" 
+                        onClick={() => removeOptionInput(idx)} 
+                        disabled={optionInputs.length === 1}
+                    >
+                        Xóa tùy chọn này
+                    </button>
+                    <button className="add-option-button" onClick={addOptionInput}>
+                        Thêm tùy chọn mới
+                    </button>
+                    <button className="add-user-button" type="submit">
+                        Thêm tùy chọn
+                    </button>
+                </div>
               </div>
             ))}
-
-<button className="add-option-button" onClick={addOptionInput}>
-    Thêm tùy chọn mới
-</button>
-
-<button className="add-user-button" type="submit">
-    Thêm tùy chọn
-</button>
           </form>
 
           <h4 style={{ marginTop: '2rem' }}>Danh sách tùy chọn hiện có</h4>

@@ -264,10 +264,10 @@ const HienThiDoUongTheoDanhMuc = () => {
                     )}
                   </p>
                   <div className="drink-actions">
-                    <button onClick={() => handleThemGioHang(d)}>
-                      <i className="fas fa-shopping-cart"></i> Thêm vào giỏ
+                    <button className="addToCartBtn" onClick={() => handleThemGioHang(d)}>
+                      Thêm vào giỏ
                     </button>
-                    <button className="buy-now" onClick={() => handleBuyNow(d)}>
+                    <button className="buyNowBtn" onClick={() => handleBuyNow(d)}>
                       Mua ngay
                     </button>
                   </div>

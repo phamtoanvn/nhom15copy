@@ -379,3 +379,22 @@
     height: 150px;
   }
 }
+
+/* Button Styles */
+.addToCartBtn,
+.buyNowBtn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background-color: #ff6b35; /* Orange color */
+    color: white; /* Text color */
+    border-radius: 12px; /* Rounded corners */
+    font-weight: 600; /* Bold text */
+    cursor: pointer; /* Pointer cursor */
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+.addToCartBtn:hover,
+.buyNowBtn:hover {
+    background-color: #e65c00; /* Darker orange on hover */
+}

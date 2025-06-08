@@ -3,7 +3,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
@@ -11,13 +11,13 @@
 /* Hero Section */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #ffa500 0%, #ffa500 100%);
+  background: linear-gradient(135deg, #aab6e9 10%, #c495f0 90%);
   border-radius: 20px;
   padding: 80px 60px;
   margin: 20px 0 40px;
   color: white;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 20px 40px rgba(142, 149, 181, 0.3);
   overflow: hidden;
 }
 
@@ -30,7 +30,7 @@
   font-size: 3.5rem;
   font-weight: 700;
   margin-bottom: 20px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .hero-subtitle {
@@ -45,7 +45,7 @@
   right: -10%;
   width: 300px;
   height: 300px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
   border-radius: 50%;
   z-index: 1;
 }
@@ -116,7 +116,7 @@
 .back-button {
   padding: 12px 24px;
   border: none;
-  background: linear-gradient(135deg, #ffa500, #ffa500);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border-radius: 12px;
   font-weight: 600;
@@ -128,3 +128,4 @@
 .back-button:hover {
   filter: brightness(1.1);
 }
+

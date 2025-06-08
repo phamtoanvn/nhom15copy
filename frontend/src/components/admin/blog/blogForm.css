@@ -1,92 +1,161 @@
-.blog-form {
+/* Container cho form */
+.blog-form-container {
   max-width: 700px;
-  margin: 2rem auto;
-  padding: 2rem 3rem;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0 auto;
+  padding: 40px 30px;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-.blog-form h2 {
+/* Animation fadeIn */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tiêu đề */
+.section-header {
   text-align: center;
-  color: #222;
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
+  margin-bottom: 30px;
 }
 
-.blog-form hr {
-  border: none;
-  height: 3px;
-  background-color: #6a0dad;
-  margin-bottom: 2rem;
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+  animation: slideDown 0.5s ease-in-out;
 }
 
+.title-underline {
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #ff7e5f, #feb47b); /* Gradient cam nhạt */
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+/* Animation slideDown */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form */
+.blog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Label */
 .blog-form label {
   display: block;
-  margin-bottom: 1.5rem;
   font-weight: 600;
-  color: #222;
-  font-size: 1.2rem;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
 }
 
+/* Input và Textarea */
 .blog-form input[type="text"],
-.blog-form input[type="number"],
 .blog-form select,
-.blog-form textarea {
+.blog-form textarea,
+.blog-form input[type="file"] {
   width: 100%;
-  padding: 14px 16px;
-  margin-top: 0.5rem;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-family: inherit;
-  resize: vertical;
-  background-color: #f9f9f9;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  color: #2d3748;
+  background-color: #f9fafb;
+}
+
+.blog-form input[type="text"]:focus,
+.blog-form select:focus,
+.blog-form textarea:focus {
+  border-color: #ff7e5f;
+  box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.1);
 }
 
 .blog-form textarea {
   min-height: 150px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-weight: normal;
-  margin-top: -1rem;
-  margin-bottom: 1.8rem;
-  font-size: 1.1rem;
+  resize: vertical;
 }
 
 .blog-form input[type="file"] {
-  margin-top: 0.5rem;
+  padding: 10px 0;
 }
 
+/* Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: normal;
+  color: #4a5568;
+}
+
+/* Button */
 .blog-form button {
-  width: 100%;
-  padding: 16px 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-  background: linear-gradient(90deg, #ff7e5f, #feb47b);
-  color: white;
+  padding: 15px;
   border: none;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #ff7e5f, #feb47b); /* Gradient cam nhạt */
+  color: white;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.25s ease;
+  transition: all 0.3s ease;
 }
 
 .blog-form button:disabled {
-  background: #6c757d;
+  background: #a0aec0;
   cursor: not-allowed;
 }
 
 .blog-form button:hover:not(:disabled) {
-  opacity: 0.9;
+  filter: brightness(1.1);
 }
 
-.blog-form img {
-  max-width: 300px;
-  margin-top: 15px;
-  border-radius: 8px;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .blog-form-container {
+    max-width: 100%;
+    padding: 20px;
+    margin: 0 10px;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .blog-form input[type="text"],
+  .blog-form select,
+  .blog-form textarea,
+  .blog-form input[type="file"] {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .blog-form button {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
 }

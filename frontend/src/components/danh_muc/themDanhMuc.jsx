@@ -22,8 +22,8 @@ export default function ThemDanhMuc({ onAdded }) {
   }
 
   return (
-    <div className="adduser-section">
-      <h2>Thêm Danh Mục</h2>
+    <div className="drink-options-manager">
+      <h3>Quản lý tùy chọn đồ uống</h3>
       <form onSubmit={handleSubmit} className="form-group">
         <label>
           Tên danh mục:
@@ -35,8 +35,13 @@ export default function ThemDanhMuc({ onAdded }) {
             placeholder="Tên danh mục"
           />
         </label>
-        <button type="submit" className="add-user-button">Thêm danh mục</button>
+        <div className="button-group">
+          <button className="add-user-button" type="submit">
+            Thêm danh mục
+          </button>
+        </div>
       </form>
+     
     </div>
   );
 }

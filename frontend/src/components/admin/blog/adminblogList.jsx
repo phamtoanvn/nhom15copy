@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import "./adminblogList.css";
-import { layDanhSachBlog, xoaBlog } from "../../../api/blog";
-import BlogForm from "./blogForm";
+import React, { useState, useEffect } from 'react';
+import './adminblogList.css';
+import { layDanhSachBlog, xoaBlog } from '../../../api/blog';
+import BlogForm from './blogForm';
 
 function AdminBlogList() {
   const [blogs, setBlogs] = useState([]);
@@ -14,7 +14,7 @@ function AdminBlogList() {
       const data = await layDanhSachBlog();
       setBlogs(data);
     } catch (error) {
-      alert("Lấy danh sách blog thất bại!");
+      alert('Lấy danh sách blog thất bại!');
     } finally {
       setLoading(false);
     }
@@ -25,20 +25,20 @@ function AdminBlogList() {
   }, []);
 
   const handleDelete = async (ma_blog) => {
-    const confirm = window.confirm("Bạn có chắc chắn muốn xóa blog này?");
+    const confirm = window.confirm('Bạn có chắc chắn muốn xóa blog này?');
     if (!confirm) return;
 
     try {
       await xoaBlog(ma_blog);
-      setBlogs(blogs.filter((blog) => blog.ma_blog !== ma_blog));
-      alert("Xóa blog thành công!");
+      setBlogs(blogs.filter(blog => blog.ma_blog !== ma_blog));
+      alert('Xóa blog thành công!');
     } catch (error) {
-      alert("Xóa blog thất bại!");
+      alert('Xóa blog thất bại!');
     }
   };
 
   const handleLoadMore = () => {
-    setVisibleBlogs((prev) => prev + 6);
+    setVisibleBlogs(prev => prev + 9);
   };
 
   if (loading) return <div className="loading">Đang tải dữ liệu...</div>;
@@ -46,6 +46,8 @@ function AdminBlogList() {
   return (
     <div className="wrapper-grid">
       <div className="admin-blog-list">
+        
+
         {dangSuaBlog ? (
           <>
             <BlogForm
@@ -55,10 +57,10 @@ function AdminBlogList() {
                 fetchBlogs();
               }}
             />
-            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
               <button
                 className="delete-btn"
-                style={{ padding: "10px 20px" }}
+                style={{ padding: '10px 20px' }}
                 onClick={() => setDangSuaBlog(null)}
               >
                 Huỷ chỉnh sửa
@@ -68,23 +70,18 @@ function AdminBlogList() {
         ) : (
           <>
             <div className="blog-list-flex">
-              {blogs.slice(0, visibleBlogs).map((blog) => (
+              {blogs.slice(0, visibleBlogs).map(blog => (
                 <div key={blog.ma_blog} className="blog-card">
                   <img
                     className="blog-thumb"
                     src={`http://localhost:5000/uploads/hinh_anh/${blog.hinh_anh
-                      .split("/")
-                      .pop()}`}
+                        .split("/")
+                        .pop()}`}
                     alt={blog.tieu_de}
-                    onError={(e) => {
-                      console.error("Failed to load image:", e.target.src);
-                      e.target.onerror = null; // Prevent infinite loop
-                      e.target.src = "/path/to/default-image.jpg"; // Replace with your default image
-                    }}
                   />
                   <h3 className="blog-title">
                     {blog.tieu_de.length > 50
-                      ? blog.tieu_de.slice(0, 50) + "..."
+                      ? blog.tieu_de.slice(0, 50) + '...'
                       : blog.tieu_de}
                   </h3>
 
@@ -119,3 +116,4 @@ function AdminBlogList() {
 }
 
 export default AdminBlogList;
+ 

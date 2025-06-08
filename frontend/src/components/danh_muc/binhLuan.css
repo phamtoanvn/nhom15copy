@@ -91,7 +91,7 @@
 .submit-comment {
   align-self: flex-start;
   padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  background-color: #db4707;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -102,7 +102,7 @@
 }
 
 .submit-comment:hover {
-  background-color: #2563eb;
+  background-color: #ff7504;
   transform: translateY(-2px);
 }
 

@@ -23,8 +23,7 @@ const Header = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
-  const { cartCount, setCartCount, fetchCart, addToCart, removeFromCart } =
-    useCart();
+  const { cartCount, setCartCount, fetchCart } = useCart();
   const tenDangNhap = localStorage.getItem("ten_dang_nhap") || "User";
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -39,10 +38,7 @@ const Header = () => {
         if (data && data.success && Array.isArray(data.data)) {
           const cleanedCategories = data.data.map((cat) => ({
             ...cat,
-            ma_danh_muc: decodeURIComponent(cat.ma_danh_muc).replace(
-              /[^a-zA-Z0-9-_& ]/g,
-              ""
-            ),
+            ma_danh_muc: decodeURIComponent(cat.ma_danh_muc).replace(/[^a-zA-Z0-9-_& ]/g, ""),
           }));
           setCategories(cleanedCategories);
           setError(null);
@@ -57,7 +53,6 @@ const Header = () => {
         setLoading(false);
       }
     };
-
     loadCategories();
   }, []);
 
@@ -67,10 +62,7 @@ const Header = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdown(false);
       }
-      if (
-        searchDropdownRef.current &&
-        !searchDropdownRef.current.contains(event.target)
-      ) {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
         setIsSearchDropdownOpen(false);
       }
     }
@@ -110,12 +102,24 @@ const Header = () => {
       };
       setAuthState(newAuthState);
 
-      if (
-        newAuthState.token &&
-        newAuthState.vaiTro !== "admin" &&
-        newAuthState.maNguoiDung !== "guest"
-      ) {
-        await fetchCart();
+      if (newAuthState.token && newAuthState.vaiTro !== "admin" && newAuthState.maNguoiDung !== "guest") {
+        let attempts = 0;
+        const maxAttempts = 3;
+        const retryDelay = 100;
+
+        const tryFetchCart = async () => {
+          try {
+            await fetchCart();
+          } catch (err) {
+            if (attempts < maxAttempts - 1) {
+              attempts++;
+              setTimeout(tryFetchCart, retryDelay);
+            } else {
+              setCartCount(0);
+            }
+          }
+        };
+        await tryFetchCart();
       } else {
         setCartCount(0);
       }
@@ -128,37 +132,27 @@ const Header = () => {
   // Load cart on auth change
   useEffect(() => {
     const loadCart = async () => {
-      if (
-        authState.token &&
-        authState.vaiTro !== "admin" &&
-        authState.maNguoiDung !== "guest"
-      ) {
-        await fetchCart();
+      if (authState.token && authState.vaiTro !== "admin" && authState.maNguoiDung !== "guest") {
+        try {
+          await fetchCart();
+        } catch (err) {
+          setCartCount(0);
+        }
       } else {
         setCartCount(0);
       }
     };
     loadCart();
-  }, [
-    authState.token,
-    authState.maNguoiDung,
-    authState.vaiTro,
-    fetchCart,
-    setCartCount,
-  ]);
+  }, [authState.token, authState.maNguoiDung, authState.vaiTro, fetchCart, setCartCount]);
 
   // Load notifications and handle WebSocket
   useEffect(() => {
     const loadNotifications = async () => {
       if (authState.token && authState.vaiTro === "admin") {
         try {
-          const notifications = await getThongBao({
-            ma_nguoi_dung: authState.maNguoiDung,
-            da_doc: 0,
-          });
+          const notifications = await getThongBao({ ma_nguoi_dung: authState.maNguoiDung, da_doc: 0 });
           setNotificationCount(notifications.length);
         } catch (err) {
-          console.error("Lỗi khi lấy thông báo:", err);
           setNotificationCount(0);
         }
       } else {
@@ -170,11 +164,7 @@ const Header = () => {
 
     if (authState.token && authState.vaiTro === "admin") {
       const handleSocketEvent = (event, data) => {
-        if (
-          event === "thong_bao_moi" &&
-          (data.loai_thong_bao === "dat_hang" ||
-            data.loai_thong_bao === "huy_don")
-        ) {
+        if (event === "thong_bao_moi" && (data.loai_thong_bao === "dat_hang" || data.loai_thong_bao === "huy_don")) {
           setNotificationCount((prev) => prev + 1);
         } else if (event === "thong_bao_da_doc") {
           setNotificationCount((prev) => Math.max(prev - 1, 0));
@@ -182,20 +172,10 @@ const Header = () => {
       };
 
       const socket = initSocket("admin", handleSocketEvent, "/thong-bao", {
-        onConnect: () => {
-          setIsSocketConnected(true);
-          loadNotifications();
-        },
+        onConnect: () => setIsSocketConnected(true),
         onDisconnect: () => setIsSocketConnected(false),
-        onError: (err) => {
-          console.error("WebSocket error:", err);
-          setIsSocketConnected(false);
-        },
-        reconnectOptions: {
-          reconnection: true,
-          reconnectionAttempts: 10,
-          reconnectionDelay: 1000,
-        },
+        onError: () => setIsSocketConnected(false),
+        reconnectOptions: { reconnection: true, reconnectionAttempts: 10, reconnectionDelay: 1000 },
       });
 
       const intervalId = setInterval(() => {
@@ -209,6 +189,7 @@ const Header = () => {
     }
   }, [authState.token, authState.vaiTro, authState.maNguoiDung]);
 
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("ten_dang_nhap");
@@ -219,19 +200,17 @@ const Header = () => {
     localStorage.removeItem("so_dien_thoai");
     setCartCount(0);
     setNotificationCount(0);
-    setAuthState({
-      token: null,
-      vaiTro: "",
-      maNguoiDung: "guest",
-    });
+    setAuthState({ token: null, vaiTro: "", maNguoiDung: "guest" });
     disconnectSocket("/thong-bao");
     navigate("/");
   };
 
+  // Handle search input change
   const handleSearchInputChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
+  // Handle search result click
   const handleSearchResultClick = (drink) => {
     if (drink.ma_danh_muc) {
       navigate(`/danh-muc/${encodeURIComponent(drink.ma_danh_muc)}`);
@@ -239,20 +218,39 @@ const Header = () => {
       setSearchResults([]);
       setIsSearchDropdownOpen(false);
     } else {
-      console.error("ma_danh_muc không tồn tại:", drink);
       alert("Không tìm thấy danh mục cho sản phẩm này");
     }
   };
 
-  const handleAddToCart = (product) => {
-    addToCart(product);
-    setCartCount((prev) => prev + 1); // Update cart count in real-time
+  // Handle Enter key to redirect to search results page
+  const handleSearchSubmit = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery("");
+      setSearchResults([]);
+      setIsSearchDropdownOpen(false);
+    }
   };
 
-  const handleRemoveFromCart = (productId) => {
-    removeFromCart(productId);
-    setCartCount((prev) => Math.max(prev - 1, 0)); // Update cart count in real-time
+  // Handle "View All Results" button click
+  const handleViewAllResults = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery("");
+      setSearchResults([]);
+      setIsSearchDropdownOpen(false);
+    }
   };
+
+  // Handle cart update event from HomePage
+  useEffect(() => {
+    const handleCartUpdated = async () => {
+      await fetchCart(); // Cập nhật số lượng giỏ hàng
+      alert(`Đã thêm sản phẩm vào giỏ hàng thành công! Số lượng hiện tại: ${cartCount + 1}`);
+    };
+    window.addEventListener("cartUpdated", handleCartUpdated);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdated);
+  }, [fetchCart, cartCount]);
 
   return (
     <header className="header">
@@ -270,30 +268,54 @@ const Header = () => {
                 placeholder="Tìm sản phẩm"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
+                onKeyDown={handleSearchSubmit}
               />
               <button className="search-btn" id="searchBtn">
                 <i className="fas fa-search"></i>
               </button>
-              {isSearchDropdownOpen && searchResults.length > 0 && (
-                <ul className="search-dropdown">
-                  {searchResults.map((drink) => (
-                    <li
-                      key={drink.ma_do_uong}
-                      onClick={() => handleSearchResultClick(drink)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {drink.ten_do_uong}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {isSearchDropdownOpen &&
-                searchQuery.trim() &&
-                searchResults.length === 0 && (
+              {isSearchDropdownOpen && (
+                <div className="search-dropdown-container">
                   <ul className="search-dropdown">
-                    <li>Không tìm thấy sản phẩm</li>
+                    {searchResults.length > 0 ? (
+                      <>
+                        {searchResults.map((drink) => (
+                          <li
+                            key={drink.ma_do_uong}
+                            onClick={() => handleSearchResultClick(drink)}
+                            className="search-result-item"
+                          >
+                            <span>{drink.ten_do_uong}</span>
+                            {drink.hinh_anh && (
+                              <img
+                                src={`http://localhost:5000/uploads/hinh_anh/${drink.hinh_anh}`}
+                                alt={drink.ten_do_uong}
+                                className="search-result-image"
+                              />
+                            )}
+                          </li>
+                        ))}
+                        <li className="view-all-results">
+                          <button
+                            onClick={handleViewAllResults}
+                            style={{
+                              border: "none",
+                              background: "none",
+                              color: "#007bff",
+                              cursor: "pointer",
+                              width: "100%",
+                              textAlign: "left",
+                            }}
+                          >
+                            
+                          </button>
+                        </li>
+                      </>
+                    ) : searchQuery.trim() ? (
+                      <li className="no-results">Không tìm thấy sản phẩm</li>
+                    ) : null}
                   </ul>
-                )}
+                </div>
+              )}
             </div>
             <div className="auth-box">
               {authState.token ? (
@@ -301,35 +323,22 @@ const Header = () => {
                   <span
                     className="user-name"
                     onClick={() => setIsDropdown(!isDropdown)}
-                    style={{ cursor: "pointer", fontSize: "1.2rem" }} // Larger username
+                    style={{ cursor: "pointer" }}
                   >
-                    {tenDangNhap}{" "}
-                    <i className="fas fa-chevron-down dropdown-icon"></i>
+                    {tenDangNhap} <i className="fas fa-chevron-down dropdown-icon"></i>
                   </span>
                   {isDropdown && (
                     <ul className="dropdown-menu">
                       {authState.vaiTro === "admin" && (
                         <li>
-                          <NavLink
-                            to="/admin/dashboard"
-                            style={{ fontSize: "1.3rem" }}
-                          >
-                            Quản trị
-                          </NavLink>
+                          <NavLink to="/admin/dashboard">Quản trị</NavLink>
                         </li>
                       )}
                       <li>
-                        <NavLink to="/profile" style={{ fontSize: "1.3rem" }}>
-                          Thông tin cá nhân
-                        </NavLink>
+                        <NavLink to="/profile">Thông tin cá nhân</NavLink>
                       </li>
                       <li>
-                        <NavLink
-                          to="/change-password"
-                          style={{ fontSize: "1.3rem" }}
-                        >
-                          Đổi mật khẩu
-                        </NavLink>
+                        <NavLink to="/change-password">Đổi mật khẩu</NavLink>
                       </li>
                       <li>
                         <button
@@ -343,7 +352,6 @@ const Header = () => {
                             color: "inherit",
                             width: "100%",
                             textAlign: "left",
-                            fontSize: "1.3rem",
                           }}
                         >
                           Đăng xuất
@@ -372,21 +380,13 @@ const Header = () => {
           <div className="logo">
             <NavLink
               to="/"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                textDecoration: "none",
-              }}
+              style={{ display: "flex", alignItems: "center", textDecoration: "none" }}
             >
-              <img
-                src="/image/anh1.jpg"
-                alt="Drinkhub Logo"
-                className="logo-img"
-              />
+              <img src="/image/anh1.jpg" alt="Drinkhub Logo" className="logo-img" />
               <div className="logo-text">
                 <span className="logo-title">DRINKHUB</span>
                 <br />
-                <span className="logo-subtitle">CHILL & DRINK</span>
+                <span className="logo-subtitle">CAKE & DRINK</span>
               </div>
             </NavLink>
           </div>
@@ -409,18 +409,12 @@ const Header = () => {
                 <ul className="nav-dropdown">
                   {loading && <li>Đang tải danh mục...</li>}
                   {error && <li style={{ color: "red" }}>{error}</li>}
-                  {!loading && !error && categories.length === 0 && (
-                    <li>Chưa có danh mục</li>
-                  )}
+                  {!loading && !error && categories.length === 0 && <li>Chưa có danh mục</li>}
                   {!loading &&
                     !error &&
                     categories.map((cat) => (
                       <li key={cat.ma_danh_muc}>
-                        <NavLink
-                          to={`/danh-muc/${encodeURIComponent(
-                            cat.ma_danh_muc
-                          )}`}
-                        >
+                        <NavLink to={`/danh-muc/${encodeURIComponent(cat.ma_danh_muc)}`}>
                           {cat.ten_danh_muc}
                         </NavLink>
                       </li>
@@ -428,26 +422,17 @@ const Header = () => {
                 </ul>
               </li>
               <li>
-                <NavLink
-                  to="/about"
-                  className={({ isActive }) => (isActive ? "active" : "")}
-                >
+                <NavLink to="/about" className={({ isActive }) => (isActive ? "active" : "")}>
                   <i className="fas fa-info-circle"></i> Giới thiệu
                 </NavLink>
               </li>
               <li>
-                <NavLink
-                  to="/blog"
-                  className={({ isActive }) => (isActive ? "active" : "")}
-                >
+                <NavLink to="/blog" className={({ isActive }) => (isActive ? "active" : "")}>
                   <i className="fas fa-blog"></i> Blog
                 </NavLink>
               </li>
               <li>
-                <NavLink
-                  to="/contact"
-                  className={({ isActive }) => (isActive ? "active" : "")}
-                >
+                <NavLink to="/contact" className={({ isActive }) => (isActive ? "active" : "")}>
                   <i className="fas fa-phone"></i> Liên hệ
                 </NavLink>
               </li>
@@ -459,11 +444,7 @@ const Header = () => {
               <div className="cart">
                 <NavLink to={`/gio-hang/${authState.maNguoiDung}`}>
                   <span className="cart-icon-wrap">
-                    <img
-                      src="/image/anh2.png"
-                      alt="Cart"
-                      className="cart-logo-icon"
-                    />
+                    <img src="/image/anh2.png" alt="Cart" className="cart-logo-icon" />
                     <span className="cart-count">{cartCount}</span>
                   </span>
                   <span className="cart-info">
@@ -476,14 +457,9 @@ const Header = () => {
               <div className="notification">
                 <NavLink to="/admin/thong-bao">
                   <span className="notification-icon-wrap">
-                    <i
-                      className="fas fa-bell"
-                      style={{ fontSize: "24px", color: "#333" }}
-                    ></i>
+                    <i className="fas fa-bell" style={{ fontSize: "24px", color: "#333" }}></i>
                     {notificationCount > 0 && (
-                      <span className="notification-count">
-                        {notificationCount}
-                      </span>
+                      <span className="notification-count">{notificationCount}</span>
                     )}
                   </span>
                   <span className="notification-info">

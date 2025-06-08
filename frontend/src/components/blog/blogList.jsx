@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
-import { layDanhSachBlog } from "../../api/blog";
-import "./blogList.css";
+import React, { useEffect, useState, useRef } from 'react';
+import { layDanhSachBlog } from '../../api/blog';
+import './blogList.css';
 
 function BlogList() {
   const [blogs, setBlogs] = useState([]);
@@ -10,9 +10,6 @@ function BlogList() {
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -20,7 +17,7 @@ function BlogList() {
         const data = await layDanhSachBlog();
         setBlogs(data);
       } catch {
-        alert("Lấy danh sách blog thất bại!");
+        alert('Lấy danh sách blog thất bại!');
       } finally {
         setLoading(false);
       }
@@ -33,8 +30,7 @@ function BlogList() {
     if (!scrollRef.current) return;
     setCanScrollLeft(scrollRef.current.scrollLeft > 0);
     setCanScrollRight(
-      scrollRef.current.scrollLeft + scrollRef.current.clientWidth <
-        scrollRef.current.scrollWidth
+      scrollRef.current.scrollLeft + scrollRef.current.clientWidth < scrollRef.current.scrollWidth
     );
   };
 
@@ -42,47 +38,21 @@ function BlogList() {
     const currentRef = scrollRef.current;
     if (!currentRef) return;
 
-    currentRef.addEventListener("scroll", checkScroll);
-    return () => currentRef.removeEventListener("scroll", checkScroll);
+    currentRef.addEventListener('scroll', checkScroll);
+    return () => currentRef.removeEventListener('scroll', checkScroll);
   }, []);
 
   const scrollByItem = 300; // Kích thước 1 card + gap
 
-  const scrollToLeft = () => {
+  const scrollLeft = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -scrollByItem, behavior: "smooth" });
+      scrollRef.current.scrollBy({ left: -scrollByItem, behavior: 'smooth' });
     }
   };
 
-  const scrollToRight = () => {
+  const scrollRight = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: scrollByItem, behavior: "smooth" });
-    }
-  };
-
-  // Logic kéo di chuyển
-  const handleDragStart = (e) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-    scrollRef.current.style.cursor = "grabbing"; // Thay đổi con trỏ khi kéo
-    scrollRef.current.style.userSelect = "none"; // Ngăn chặn bôi đen
-  };
-
-  const handleDragMove = (e) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault(); // Ngăn chặn hành vi mặc định (như chọn text)
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1; // Giảm tốc độ kéo để mượt hơn (từ 1.5 xuống 1)
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    if (scrollRef.current) {
-      scrollRef.current.style.cursor = "grab"; // Quay lại con trỏ grab
-      scrollRef.current.style.userSelect = "auto"; // Cho phép bôi đen lại
+      scrollRef.current.scrollBy({ left: scrollByItem, behavior: 'smooth' });
     }
   };
 
@@ -91,9 +61,7 @@ function BlogList() {
   if (selectedBlog) {
     return (
       <div className="blog-detail">
-        <button className="back-btn" onClick={() => setSelectedBlog(null)}>
-          ← Quay lại
-        </button>
+        <button className="back-btn" onClick={() => setSelectedBlog(null)}>← Quay lại</button>
         <h2 className="detail-title">{selectedBlog.tieu_de}</h2>
         <img
           className="detail-image"
@@ -101,10 +69,6 @@ function BlogList() {
             .split("/")
             .pop()}`}
           alt={selectedBlog.tieu_de}
-          onError={(e) => {
-            console.error(`Failed to load image: ${e.target.src}`);
-            e.target.src = "/path/to/default-image.jpg"; // Thay bằng đường dẫn hình mặc định
-          }}
         />
         <p className="detail-content">{selectedBlog.noi_dung}</p>
       </div>
@@ -118,22 +82,15 @@ function BlogList() {
       <div className="carousel-wrapper">
         <button
           className="scroll-btn left"
-          onClick={scrollToLeft}
+          onClick={scrollLeft}
           disabled={!canScrollLeft}
           aria-label="Cuộn trái"
         >
           ←
         </button>
 
-        <div
-          className={`blog-carousel ${isDragging ? "dragging" : ""}`}
-          ref={scrollRef}
-          onMouseDown={handleDragStart}
-          onMouseMove={handleDragMove}
-          onMouseUp={handleDragEnd}
-          onMouseLeave={handleDragEnd} // Thoát khi rời chuột ra khỏi vùng
-        >
-          {blogs.map((blog) => (
+        <div className="blog-carousel" ref={scrollRef}>
+          {blogs.map(blog => (
             <div
               key={blog.ma_blog}
               className="blog-card"
@@ -145,10 +102,6 @@ function BlogList() {
                   .split("/")
                   .pop()}`}
                 alt={blog.tieu_de}
-                onError={(e) => {
-                  console.error(`Failed to load image: ${e.target.src}`);
-                  e.target.src = "/path/to/default-image.jpg"; // Thay bằng đường dẫn hình mặc định
-                }}
               />
               <h3 className="blog-title">{blog.tieu_de}</h3>
             </div>
@@ -157,7 +110,7 @@ function BlogList() {
 
         <button
           className="scroll-btn right"
-          onClick={scrollToRight}
+          onClick={scrollRight}
           disabled={!canScrollRight}
           aria-label="Cuộn phải"
         >

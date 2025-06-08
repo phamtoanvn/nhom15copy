@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDoUongTheoDanhMuc } from "../api/doUong";
 import { fetchDanhSachDanhMuc } from "../api/danh_muc";
@@ -7,399 +7,574 @@ import { addGioHang } from "../api/gioHang";
 import { layDanhSachBlog } from "../api/blog";
 import { getTopDrinks } from "../api/donHang";
 import { useCart } from "../components/gio_hang/cartContext";
-import "./home.css";
 
-// Function to remove emojis from text
-const removeEmojis = (text) => {
-  return text.replace(
-    /[\u{1F300}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F191}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F171}\u{1F17E}-\u{1F17F}\u{1F18E}\u{3030}\u{2B50}\u{2B55}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{2B1B}-\u{2B1C}\u{3297}\u{3299}\u{A9}\u{AE}\u{2122}\u{23F3}\u{24C2}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}]/gu,
-    ""
-  );
-};
+const styles = {
+  container: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "0 16px",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    backgroundColor: "white",
+    minHeight: "100vh",
+  },
 
-// Reusable Drink Card Component
-const DrinkCard = ({ drink, onAddToCart, onBuyNow }) => {
-  if (!drink) return null; // Tránh hiển thị card trống
-  const giaGiam =
-    drink.giam_gia_phan_tram > 0
-      ? Math.round(drink.gia * (1 - drink.giam_gia_phan_tram / 100))
-      : drink.gia;
+  // Hero Section
+  hero: {
+    position: "relative",
+    background: "linear-gradient(135deg, #a7c5eb 0%, #d6a4e0 100%)",
+    borderRadius: "20px",
+    padding: "80px 60px",
+    margin: "20px 0 40px",
+    color: "#333",
+    textAlign: "center",
+    boxShadow: "0 20px 40px rgba(102, 126, 234, 0.3)",
+    overflow: "hidden",
+  },
+  heroContent: {
+    position: "relative",
+    zIndex: 2,
+  },
+  heroTitle: {
+    fontSize: "3.5rem",
+    fontWeight: "700",
+    marginBottom: "20px",
+    textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  },
+  heroSubtitle: {
+    fontSize: "1.3rem",
+    opacity: 0.9,
+    fontWeight: "300",
+  },
+  heroDecoration: {
+    position: "absolute",
+    top: "-50%",
+    right: "-10%",
+    width: "300px",
+    height: "300px",
+    background: "rgba(255,255,255,0.1)",
+    borderRadius: "50%",
+    zIndex: 1,
+  },
 
-  return (
-    <div className="drink-item">
-      <div className="drink-content">
-        <div className="drink-details">
-          {drink.hinh_anh ? (
-            <img
-              src={`http://localhost:5000/uploads/hinh_anh/${drink.hinh_anh}`}
-              alt={drink.ten_do_uong}
-              style={{ width: "100%", height: 200, objectFit: "cover" }}
-              onClick={() => onAddToCart(drink, true)}
-              onError={(e) => {
-                console.error(`Failed to load image: ${e.target.src}`);
-                e.target.src = "/path/to/default-image.jpg"; // Hình mặc định nếu lỗi
-              }}
-            />
-          ) : (
-            <div className="drink-placeholder">Không có hình ảnh</div>
-          )}
-          {drink.giam_gia_phan_tram > 0 && (
-            <span className="discount-badge">-{drink.giam_gia_phan_tram}%</span>
-          )}
-          <h3>{drink.ten_do_uong || "Tên không xác định"}</h3>
-          <p>
-            <strong>Giá:</strong>{" "}
-            {drink.giam_gia_phan_tram > 0 ? (
-              <>
-                <span
-                  style={{
-                    textDecoration: "line-through",
-                    color: "#888",
-                  }}
-                >
-                  {Number(drink.gia).toLocaleString()} VNĐ
-                </span>{" "}
-                <span style={{ color: "#dc2626" }}>
-                  {Number(giaGiam).toLocaleString()} VNĐ
-                </span>
-              </>
-            ) : (
-              <span>{Number(drink.gia).toLocaleString()} VNĐ</span>
-            )}
-          </p>
-          <div className="drink-actions">
-            <button onClick={() => onAddToCart(drink, false)}>
-              <i className="fas fa-shopping-cart"></i> Thêm vào giỏ
-            </button>
-            <button className="buy-now" onClick={() => onBuyNow(drink)}>
-              Mua ngay
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+  // Section
+  section: {
+    marginBottom: "80px",
+  },
+  sectionHeader: {
+    textAlign: "center",
+    marginBottom: "50px",
+  },
+  sectionTitle: {
+    fontSize: "2.5rem",
+    fontWeight: "600",
+    color: "#2d3748",
+    marginBottom: "10px",
+  },
+  titleUnderline: {
+    width: "80px",
+    height: "4px",
+    background: "linear-gradient(90deg, #667eea, #764ba2)",
+    margin: "0 auto",
+    borderRadius: "2px",
+  },
 
-// Reusable Carousel Component
-const Carousel = ({ items, renderItem, scrollKey }) => {
-  const scrollRef = useRef(null);
-  const [canScroll, setCanScroll] = useState({ left: false, right: true });
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftStart = useRef(0);
+  // Carousel
+  carouselContainer: {
+    position: "relative",
+    marginTop: "30px",
+  },
+  scrollButton: {
+    position: "absolute",
+    top: "50%",
+    transform: "translateY(-50%)",
+    zIndex: 10,
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    border: "none",
+    background: "linear-gradient(135deg,#ff6b35)",
+    color: "white",
+    fontSize: "18px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 8px 16px rgba(102, 126, 234, 0.3)",
+    transition: "all 0.3s ease",
+    left: "-25px",
+    opacity: 1,
+  },
+  scrollButtonRight: {
+    left: "auto",
+    right: "-25px",
+  },
+  scrollButtonDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+  },
+  carousel: {
+    display: "flex",
+    overflowX: "auto",
+    scrollBehavior: "smooth",
+    gap: "25px",
+    padding: "20px 0",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+    "&::-webkit-scrollbar": {
+      display: "none",
+    },
+  },
 
-  const checkScroll = () => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScroll({
-      left: scrollLeft > 1,
-      right: scrollLeft + clientWidth < scrollWidth - 1,
-    });
-  };
+  // Drink Card
+  drinkCard: {
+    minWidth: "250px",
+    background: "white",
+    borderRadius: "20px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+    transition: "all 0.3s ease",
+    cursor: "pointer",
+    overflow: "hidden",
+    "&:hover": {
+      transform: "translateY(-10px)",
+      boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+    },
+  },
+  cardImageContainer: {
+    position: "relative",
+    height: "128px",
+    background: "linear-gradient(135deg, #667eea, #764ba2)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "20px 20px 0 0",
+  },
+  cardImagePlaceholder: {
+    color: "white",
+    fontSize: "20px",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  discountBadge: {
+    position: "absolute",
+    top: "15px",
+    right: "15px",
+    background: "#e53e3e",
+    color: "white",
+    padding: "5px 12px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+  cardContent: {
+    padding: "25px",
+  },
+  cardTitle: {
+    fontSize: "1.25rem",
+    fontWeight: "600",
+    color: "#2d3748",
+    marginBottom: "15px",
+  },
+  priceContainer: {
+    marginBottom: "10px",
+  },
+  originalPrice: {
+    textDecoration: "line-through",
+    color: "#718096",
+    fontSize: "14px",
+    marginRight: "10px",
+  },
+  salePrice: {
+    color: "#e53e3e",
+    fontSize: "18px",
+    fontWeight: "600",
+  },
+  regularPrice: {
+    color: "#2d3748",
+    fontSize: "18px",
+    fontWeight: "600",
+  },
+  soldInfo: {
+    color: "#718096",
+    fontSize: "14px",
+    marginBottom: "15px",
+  },
+  description: {
+    color: "#4a5568",
+    fontSize: "14px",
+    marginBottom: "20px",
+    lineHeight: "1.5",
+  },
+  buttonGroup: {
+    display: "flex",
+    gap: "10px",
+  },
+  addToCartBtn: {
+    flex: 1,
+    padding: "12px",
+    border: "none",
+    backgroundColor: "#ff6b35",
+    color: "white",
+    borderRadius: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      backgroundColor: "#e65c00",
+    },
+  },
+  buyNowBtn: {
+    flex: 1,
+    padding: "12px",
+    border: "none",
+    backgroundColor: "#ff6b35",
+    color: "white",
+    borderRadius: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      backgroundColor: "#e65c00",
+    },
+  },
 
-  useEffect(() => {
-    const ref = scrollRef.current;
-    if (ref) {
-      ref.addEventListener("scroll", checkScroll);
-      checkScroll();
-    }
-    return () => ref?.removeEventListener("scroll", checkScroll);
-  }, [items]);
+  // Category Section
+  categorySection: {
+    marginBottom: "60px",
+  },
+  categoryTitle: {
+    fontSize: "2rem",
+    fontWeight: "600",
+    color: "#2d3748",
+    marginBottom: "30px",
+    paddingLeft: "20px",
+    borderLeft: "4px solid #667eea",
+  },
 
-  const scrollBy = (distance) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: distance, behavior: "smooth" });
-      if (scrollRef.current.scrollLeft < 0) {
-        scrollRef.current.scrollLeft = 0;
-      }
-    }
-  };
+  // Blog Section
+  blogCard: {
+    minWidth: "250px",
+    background: "white",
+    borderRadius: "20px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+    transition: "all 0.3s ease",
+    cursor: "pointer",
+    overflow: "hidden",
+    "&:hover": {
+      transform: "translateY(-10px)",
+      boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+    },
+  },
+  blogImageContainer: {
+    height: "128px",
+    background: "linear-gradient(135deg, #764ba2, #667eea)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  blogImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "20px 20px 0 0",
+  },
+  blogImagePlaceholder: {
+    color: "white",
+    fontSize: "20px",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  blogCardContent: {
+    padding: "25px",
+  },
+  blogCardTitle: {
+    fontSize: "1.2rem",
+    fontWeight: "600",
+    color: "#2d3748",
+    marginBottom: "15px",
+  },
+  readMore: {
+    color: "#667eea",
+    fontSize: "14px",
+    fontWeight: "500",
+  },
 
-  const handleMouseDown = (e) => {
-    isDragging.current = true;
-    startX.current = e.pageX - scrollRef.current.offsetLeft;
-    scrollLeftStart.current = scrollRef.current.scrollLeft;
-    scrollRef.current.style.cursor = "grab";
-  };
+  // Modal
+  modal: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1001,
+    padding: "1rem",
+  },
+  modalContent: {
+    background: "white",
+    borderRadius: "12px",
+    boxShadow: "0 25px 50px rgba(0, 0, 0, 0.25)",
+    width: "100%",
+    maxWidth: "28rem",
+    maxHeight: "90vh",
+    overflowY: "auto",
+  },
+  modalHeader: {
+    background: "linear-gradient(135deg, #ffcc80, #ffab40)",
+    color: "white",
+    padding: "30px",
+    textAlign: "center",
+  },
+  modalTitle: {
+    fontSize: "1.5rem",
+    fontWeight: "600",
+    marginBottom: "10px",
+  },
+  modalDrinkName: {
+    fontSize: "1.2rem",
+    fontWeight: "400",
+    opacity: 0.9,
+  },
+  modalBody: {
+    padding: "30px",
+    maxHeight: "400px",
+    overflowY: "auto",
+  },
+  optionGroup: {
+    marginBottom: "25px",
+  },
+  optionLabel: {
+    fontSize: "16px",
+    fontWeight: "600",
+    color: "#2d3748",
+    marginBottom: "15px",
+  },
+  optionList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  optionItem: {
+    display: "flex",
+    alignItems: "center",
+    padding: "12px",
+    border: "2px solid #e2e8f0",
+    borderRadius: "12px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      borderColor: "#667eea",
+    },
+  },
+  radioInput: {
+    marginRight: "12px",
+    accentColor: "#667eea",
+  },
+  optionText: {
+    fontSize: "14px",
+    color: "#2d3748",
+  },
+  extraPrice: {
+    color: "#667eea",
+    fontWeight: "600",
+  },
+  totalPrice: {
+    background: "linear-gradient(135deg, #f7fafc, #edf2f7)",
+    padding: "20px",
+    borderRadius: "12px",
+    textAlign: "center",
+    fontSize: "18px",
+    color: "#2d3748",
+    marginTop: "20px",
+  },
+  modalFooter: {
+    display: "flex",
+    gap: "15px",
+    padding: "20px 30px 30px",
+    borderTop: "1px solid #e2e8f0",
+  },
+  cancelBtn: {
+    flex: 1,
+    padding: "12px",
+    border: "2px solid #ff9f73",
+    backgroundColor: "#f8f9fa",
+    color: "#ff6b35",
+    borderRadius: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      backgroundColor: "#ff6b35",
+      color: "white",
+    },
+  },
+  confirmBtn: {
+    flex: 2,
+    padding: "12px",
+    border: "none",
+    backgroundColor: "#ff6b35",
+    color: "white",
+    borderRadius: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      filter: "brightness(1.1)",
+      backgroundColor: "#e65c00",
+      transform: "translateY(-3px)",
+      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+    },
+  },
+  quantityBtn: {
+    padding: "0.5rem",
+    border: "none",
+    backgroundColor: "#ff9f73",
+    color: "white",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+    borderRadius: "8px",
+    "&:hover": {
+      backgroundColor: "#ff6b35",
+    },
+  },
+  quantityInput: {
+    padding: "0.5rem",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    textAlign: "center",
+    width: "60px",
+  },
 
-  const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2;
-    scrollRef.current.scrollLeft = scrollLeftStart.current - walk;
-  };
+  // Blog Detail
+  blogDetail: {
+    maxWidth: "800px",
+    margin: "0 auto",
+    padding: "40px 20px",
+    backgroundColor: "white",
+    borderRadius: "20px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+  },
+  backButton: {
+    marginBottom: "30px",
+    padding: "12px 20px",
+    background: "linear-gradient(135deg, #e2e8f0, #cbd5e0)",
+    color: "#2d3748",
+    border: "none",
+    borderRadius: "12px",
+    fontSize: "16px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      background: "linear-gradient(135deg, #cbd5e0, #a0aec0)",
+    },
+  },
+  blogTitle: {
+    fontSize: "2.5rem",
+    fontWeight: "700",
+    color: "#2d3748",
+    marginBottom: "30px",
+    lineHeight: "1.2",
+  },
+  blogImageContainer: {
+    height: "300px",
+    background: "linear-gradient(135deg, #764ba2, #667eea)",
+    borderRadius: "15px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "30px",
+  },
+  blogImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "15px",
+  },
+  blogImagePlaceholder: {
+    color: "white",
+    fontSize: "24px",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  blogContent: {
+    fontSize: "16px",
+    lineHeight: "1.8",
+    color: "#4a5568",
+    textAlign: "justify",
+  },
 
-  const handleMouseUp = () => {
-    isDragging.current = false;
-    scrollRef.current.style.cursor = "grab";
-    checkScroll();
-  };
+  // Loading and Error
+  loading: {
+    textAlign: "center",
+    fontSize: "18px",
+    color: "#667eea",
+    padding: "40px",
+  },
+  error: {
+    textAlign: "center",
+    fontSize: "16px",
+    color: "#e53e3e",
+    background: "#fed7d7",
+    padding: "15px",
+    borderRadius: "12px",
+    margin: "20px 0",
+  },
 
-  return (
-    <div className="carousel-container">
-      <button
-        className="carousel-btn carousel-btn-left"
-        onClick={() => scrollBy(-300)}
-        disabled={!canScroll.left}
-      >
-        ←
-      </button>
-      <div
-        className="carousel"
-        ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        {items
-          .filter((item) => item) // Loại bỏ item undefined/null
-          .map((item, index) => (
-            <div key={`${scrollKey}-${index}`} className="carousel-item">
-              {renderItem(item)}
-            </div>
-          ))}
-      </div>
-      <button
-        className="carousel-btn carousel-btn-right"
-        onClick={() => scrollBy(300)}
-        disabled={!canScroll.right}
-      >
-        →
-      </button>
-    </div>
-  );
-};
-
-// Cart Popup Component
-const CartPopup = ({
-  drink,
-  options,
-  quantity,
-  setQuantity,
-  selectedOptions,
-  setSelectedOptions,
-  onConfirm,
-  onCancel,
-}) => {
-  const giaGiam =
-    drink.giam_gia_phan_tram > 0
-      ? Math.round(drink.gia * (1 - drink.giam_gia_phan_tram / 100))
-      : drink.gia;
-
-  const handleQuantityChange = (type) => {
-    setQuantity((prev) =>
-      type === "decrease" ? Math.max(1, prev - 1) : prev + 1
-    );
-  };
-
-  const tinhTongTien = () => {
-    const giaSauGiam = giaGiam;
-    const tongGiaThem = Object.values(selectedOptions).reduce(
-      (sum, opt) => sum + (opt.gia_them || 0),
-      0
-    );
-    return (giaSauGiam + tongGiaThem) * quantity;
-  };
-
-  return (
-    <div className="cart-popup-overlay" onClick={onCancel}>
-      <div className="cart-popup" onClick={(e) => e.stopPropagation()}>
-        <h3 className="cart-popup-title">{drink.ten_do_uong}</h3>
-        <div className="cart-popup-option">
-          <label>Số lượng</label>
-          <div className="quantity-control">
-            <button onClick={() => handleQuantityChange("decrease")}>-</button>
-            <span className="quantity-display">{quantity}</span>
-            <button onClick={() => handleQuantityChange("increase")}>+</button>
-          </div>
-        </div>
-        {Object.entries(options).map(([loai, opts]) => (
-          <div key={loai} className="cart-popup-option">
-            <label>{loai.charAt(0).toUpperCase() + loai.slice(1)}</label>
-            {opts.map((opt) => (
-              <label key={opt.gia_tri} className="option-item">
-                <input
-                  type="radio"
-                  name={loai}
-                  value={opt.gia_tri}
-                  checked={selectedOptions[loai]?.gia_tri === opt.gia_tri}
-                  onChange={() =>
-                    setSelectedOptions((prev) => ({
-                      ...prev,
-                      [loai]: {
-                        gia_tri: opt.gia_tri,
-                        gia_them: opt.gia_them || 0,
-                      },
-                    }))
-                  }
-                />
-                {opt.gia_tri}{" "}
-                {opt.gia_them > 0
-                  ? `(+${opt.gia_them.toLocaleString()} VNĐ)`
-                  : ""}
-              </label>
-            ))}
-          </div>
-        ))}
-        <p className="cart-popup-total">
-          Tổng tiền: <strong>{tinhTongTien().toLocaleString()} VNĐ</strong>
-        </p>
-        <div className="cart-popup-actions">
-          <button className="btn btn-cancel" onClick={onCancel}>
-            Hủy
-          </button>
-          <button className="btn btn-add" onClick={onConfirm}>
-            Thêm giỏ hàng
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Detail Modal Component
-const DetailModal = ({
-  drink,
-  options,
-  selectedOptions,
-  setSelectedOptions,
-  onClose,
-}) => {
-  const giaGiam =
-    drink.giam_gia_phan_tram > 0
-      ? Math.round(drink.gia * (1 - drink.giam_gia_phan_tram / 100))
-      : drink.gia;
-
-  const tinhTongTien = () => {
-    const giaSauGiam = giaGiam;
-    const tongGiaThem = Object.values(selectedOptions).reduce(
-      (sum, opt) => sum + (opt.gia_them || 0),
-      0
-    );
-    return giaSauGiam + tongGiaThem;
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal-header">{drink.ten_do_uong}</h3>
-        <div className="modal-body">
-          {drink.hinh_anh ? (
-            <img
-              src={`http://localhost:5000/uploads/hinh_anh/${drink.hinh_anh}`}
-              alt={drink.ten_do_uong}
-              className="modal-product-image"
-              onError={(e) =>
-                console.error(`Failed to load image: ${e.target.src}`)
-              }
-            />
-          ) : (
-            <div className="modal-image-placeholder">Không có hình ảnh</div>
-          )}
-          <p className="modal-product-description">
-            {drink.mo_ta || "Không có mô tả"}
-          </p>
-          <p className="modal-product-price">
-            Giá:{" "}
-            {drink.giam_gia_phan_tram > 0 ? (
-              <>
-                <span className="new-price">
-                  {Number(giaGiam).toLocaleString()} VNĐ
-                </span>
-                <span className="original-price">
-                  {Number(drink.gia).toLocaleString()} VNĐ
-                </span>
-              </>
-            ) : (
-              `${Number(drink.gia).toLocaleString()} VNĐ`
-            )}
-          </p>
-          {Object.entries(options).map(([loai, opts]) => (
-            <div key={loai} className="option-group">
-              <p className="option-group-title">
-                {loai.charAt(0).toUpperCase() + loai.slice(1)}
-              </p>
-              {opts.map((opt) => (
-                <label key={`${loai}-${opt.gia_tri}`} className="option-item">
-                  <input
-                    type="radio"
-                    name={loai}
-                    value={opt.gia_tri}
-                    checked={selectedOptions[loai]?.gia_tri === opt.gia_tri}
-                    onChange={() =>
-                      setSelectedOptions((prev) => ({
-                        ...prev,
-                        [loai]: {
-                          gia_tri: opt.gia_tri,
-                          gia_them: opt.gia_them || 0,
-                        },
-                      }))
-                    }
-                    className="radio-input"
-                  />
-                  {opt.gia_tri}{" "}
-                  {opt.gia_them > 0
-                    ? `(+${opt.gia_them.toLocaleString()} VNĐ)`
-                    : ""}
-                </label>
-              ))}
-            </div>
-          ))}
-          <p className="total-price">
-            Tổng tiền: {tinhTongTien().toLocaleString()} VNĐ
-          </p>
-        </div>
-        <div className="modal-actions">
-          <button className="btn btn-close" onClick={onClose}>
-            Đóng
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  // Empty Message
+  emptyMessage: {
+    textAlign: "center",
+    color: "#718096",
+    fontSize: "16px",
+    padding: "40px",
+  },
 };
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { fetchCart } = useCart();
 
+  // State
   const [danhMucList, setDanhMucList] = useState([]);
   const [doUongByDanhMuc, setDoUongByDanhMuc] = useState({});
   const [loadingDrinks, setLoadingDrinks] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [quantity, setQuantity] = useState(1);
 
   const [topDrinks, setTopDrinks] = useState([]);
   const [loadingTopDrinks, setLoadingTopDrinks] = useState(true);
 
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState(null);
   const [drinkOptions, setDrinkOptions] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({});
-  const [showCartPopup, setShowCartPopup] = useState(false);
-  const [cartQuantity, setCartQuantity] = useState(1);
+  const [isBuyNow, setIsBuyNow] = useState(false);
 
   const [blogs, setBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [loadingBlogs, setLoadingBlogs] = useState(true);
 
+  const scrollRefs = useRef({});
+
+  // Fetch data
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoadingDrinks(true);
         setError(null);
-
         const resDanhMuc = await fetchDanhSachDanhMuc();
         if (resDanhMuc && Array.isArray(resDanhMuc.data)) {
           setDanhMucList(resDanhMuc.data);
           const drinksData = {};
           for (const dm of resDanhMuc.data) {
             const drinks = await getDoUongTheoDanhMuc(dm.ma_danh_muc);
-            drinksData[dm.ma_danh_muc] = drinks.filter(
-              (d) => d.hien_thi && d.hinh_anh
-            ); // Chỉ lấy sản phẩm có hình ảnh
+            drinksData[dm.ma_danh_muc] = drinks.filter((d) => d.hien_thi);
           }
           setDoUongByDanhMuc(drinksData);
         } else {
@@ -420,7 +595,7 @@ const HomePage = () => {
       try {
         setLoadingTopDrinks(true);
         const data = await getTopDrinks({ limit: 10 });
-        setTopDrinks(data.filter((d) => d.hinh_anh)); // Chỉ lấy sản phẩm có hình ảnh
+        setTopDrinks(data);
       } catch (err) {
         console.error("Error fetching top drinks:", err.message);
         setError("Không thể tải danh sách đồ uống bán chạy");
@@ -439,7 +614,7 @@ const HomePage = () => {
         setBlogs(data);
       } catch (err) {
         console.error("Error fetching blogs:", err);
-        alert("Lấy danh sách blog thất bại!");
+        setError("Lấy danh sách blog thất bại!");
       } finally {
         setLoadingBlogs(false);
       }
@@ -447,7 +622,56 @@ const HomePage = () => {
     fetchBlogs();
   }, []);
 
-  const handleAddToCart = async (drink, showDetails = false) => {
+  // Scroll handling
+  const checkScroll = (key) => {
+    const scrollRef = scrollRefs.current[key];
+    if (!scrollRef) return;
+    scrollRef.dataset.canScrollLeft = scrollRef.scrollLeft > 0;
+    scrollRef.dataset.canScrollRight =
+      scrollRef.scrollLeft + scrollRef.clientWidth < scrollRef.scrollWidth;
+  };
+
+  useEffect(() => {
+    const currentScrollRefs = scrollRefs.current;
+    Object.keys(currentScrollRefs).forEach((key) => {
+      const scrollRef = currentScrollRefs[key];
+      if (scrollRef) {
+        scrollRef.addEventListener("scroll", () => checkScroll(key));
+        checkScroll(key);
+      }
+    });
+    return () => {
+      Object.keys(currentScrollRefs).forEach((key) => {
+        const scrollRef = currentScrollRefs[key];
+        if (scrollRef) scrollRef.removeEventListener("scroll", () => checkScroll(key));
+      });
+    };
+  }, [doUongByDanhMuc, topDrinks, blogs]);
+
+  const scrollLeft = (key) => {
+    const scrollRef = scrollRefs.current[key];
+    if (scrollRef) scrollRef.scrollBy({ left: -300, behavior: "smooth" });
+  };
+
+  const scrollRight = (key) => {
+    const scrollRef = scrollRefs.current[key];
+    if (scrollRef) scrollRef.scrollBy({ left: 300, behavior: "smooth" });
+  };
+
+  // Handle drink options
+  const handleThemGioHang = async (drink) => {
+    setIsBuyNow(false);
+    await loadDrinkOptions(drink);
+    setQuantity(1);
+  };
+
+  const handleBuyNow = async (drink) => {
+    setIsBuyNow(true);
+    await loadDrinkOptions(drink);
+    setQuantity(1);
+  };
+
+  const loadDrinkOptions = async (drink) => {
     try {
       const options = await fetchTuyChonByDoUong(drink.ma_do_uong);
       const grouped = {};
@@ -458,236 +682,595 @@ const HomePage = () => {
       setSelectedDrink(drink);
       setDrinkOptions(grouped);
       setSelectedOptions({});
-
-      if (showDetails) {
-        setShowDetailModal(true);
-      } else {
-        setCartQuantity(1);
-        setShowCartPopup(true);
-      }
+      setShowModal(true);
     } catch (err) {
-      alert("Lỗi khi tải thông tin sản phẩm");
-      console.error("Error loading product info:", err);
+      alert("Lỗi khi tải tùy chọn đồ uống");
+      console.error("Error loading drink options:", err);
     }
   };
 
-  const handleBuyNow = async (drink) => {
-    try {
-      const options = await fetchTuyChonByDoUong(drink.ma_do_uong);
-      const grouped = {};
-      options.forEach((opt) => {
-        if (!grouped[opt.loai_tuy_chon]) grouped[opt.loai_tuy_chon] = [];
-        grouped[opt.loai_tuy_chon].push(opt);
-      });
-      const tempItem = {
-        ma_do_uong: drink.ma_do_uong,
-        ten_do_uong: drink.ten_do_uong,
-        so_luong: 1,
-        tuy_chon: Object.entries(grouped).map(([loai, opts]) => ({
-          loai_tuy_chon: loai,
-          gia_tri: opts[0].gia_tri,
-          gia_them: opts[0].gia_them,
-        })),
-        tong_gia: Math.round(
-          drink.gia * (1 - (drink.giam_gia_phan_tram || 0) / 100)
-        ),
-      };
-      localStorage.setItem("buyNowItem", JSON.stringify([tempItem]));
-      localStorage.removeItem("selectedCartItems");
-      navigate("/don-hang");
-    } catch (err) {
-      alert(`Thao tác thất bại!\nLỗi: ${err.message || "Không xác định"}`);
-    }
+  const handleChangeOption = (loai, gia_tri) => {
+    const opt = drinkOptions[loai].find((o) => o.gia_tri === gia_tri);
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [loai]: { gia_tri: opt.gia_tri, gia_them: opt.gia_them },
+    }));
   };
 
-  const handleConfirmAddToCart = async () => {
+  const tinhTongTien = useMemo(() => {
+    if (!selectedDrink) return 0;
+    const giamGia = selectedDrink.giam_gia_phan_tram || 0;
+    const giaGoc = selectedDrink.gia || 0;
+    const giaSauGiam = Math.round(giaGoc * (1 - giamGia / 100));
+    const tongGiaThem = Object.values(selectedOptions).reduce(
+      (sum, opt) => sum + (opt.gia_them || 0),
+      0
+    );
+    const total = (giaSauGiam + tongGiaThem) * quantity;
+    console.log("TinhTongTien debug:", { giaGoc, giamGia, giaSauGiam, tongGiaThem, quantity, total });
+    return total;
+  }, [selectedDrink, selectedOptions, quantity]);
+
+  const handleXacNhan = async () => {
     if (!selectedDrink) return;
-
+  
     const token = localStorage.getItem("token");
     const maNguoiDung = token ? localStorage.getItem("ma_nguoi_dung") : null;
-
+  
     if (!maNguoiDung || !token) {
       alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.");
-      setShowCartPopup(false);
+      setShowModal(false);
       navigate("/login");
       return;
     }
-
+  
     const tuyChonArr = Object.entries(selectedOptions).map(([loai, opt]) => ({
       loai_tuy_chon: loai,
       gia_tri: opt.gia_tri,
-      gia_them: opt.gia_them || 0,
+      gia_them: opt.gia_them,
     }));
-
+  
     try {
-      const result = await addGioHang({
+      const payload = {
         ma_nguoi_dung: Number(maNguoiDung),
         ma_do_uong: selectedDrink.ma_do_uong,
-        so_luong: cartQuantity,
+        so_luong: quantity, // Use the quantity state
         tuy_chon: tuyChonArr,
-      });
-
-      if (result && result.success) {
-        alert(`Đã thêm "${selectedDrink.ten_do_uong}" vào giỏ hàng!`);
-        setShowCartPopup(false);
+      };
+      console.log("Validated payload:", payload);
+  
+      if (isBuyNow) {
+        const tempItem = {
+          ma_do_uong: selectedDrink.ma_do_uong,
+          ten_do_uong: selectedDrink.ten_do_uong,
+          so_luong: quantity,
+          tuy_chon: tuyChonArr,
+          tong_gia: tinhTongTien,
+        };
+        localStorage.setItem("buyNowItem", JSON.stringify([tempItem]));
+        localStorage.removeItem("selectedCartItems");
+        setShowModal(false);
+        setSelectedOptions({});
         setSelectedDrink(null);
         setDrinkOptions({});
-        setSelectedOptions({});
-        setCartQuantity(1);
-        await fetchCart();
+        setQuantity(1);
+        navigate("/don-hang");
       } else {
-        throw new Error(result?.message || "Thêm vào giỏ hàng thất bại");
+        const result = await addGioHang(payload);
+  
+        // Enhanced error checking
+        if (result && (result.success === true || result.success)) {
+          alert(
+            `Đã thêm "${selectedDrink.ten_do_uong}" vào giỏ hàng!\nTổng tiền: ${tinhTongTien.toLocaleString()} VNĐ`
+          );
+          setShowModal(false);
+          setSelectedOptions({});
+          setSelectedDrink(null);
+          setDrinkOptions({});
+          setQuantity(1);
+          await fetchCart();
+          window.dispatchEvent(new Event("cartUpdated"));
+        } else {
+          throw new Error(result?.message || "Thêm vào giỏ hàng thất bại");
+        }
       }
     } catch (err) {
-      alert(`Thao tác thất bại!\nLỗi: ${err.message || "Không xác định"}`);
+      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      alert(
+        `Thao tác thất bại!\nLỗi: ${
+          err.message || "Vui lòng kiểm tra kết nối hoặc thử lại sau."
+        }`
+      );
     }
   };
+  // Search functionality
+  const filteredDoUongByDanhMuc = useMemo(() => {
+    if (!searchTerm) return doUongByDanhMuc;
+    const filtered = {};
+    Object.keys(doUongByDanhMuc).forEach((key) => {
+      filtered[key] = doUongByDanhMuc[key].filter((drink) =>
+        drink.ten_do_uong.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+    return filtered;
+  }, [doUongByDanhMuc, searchTerm]);
 
-  const handleCancel = () => {
-    setShowCartPopup(false);
-    setSelectedDrink(null);
-    setDrinkOptions({});
-    setSelectedOptions({});
-    setCartQuantity(1);
-  };
+  const filteredTopDrinks = useMemo(() => {
+    if (!searchTerm) return topDrinks;
+    return topDrinks.filter((drink) =>
+      drink.ten_do_uong.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [topDrinks, searchTerm]);
 
-  const handleCloseDetailModal = () => {
-    setShowDetailModal(false);
-    setSelectedDrink(null);
-    setDrinkOptions({});
-    setSelectedOptions({});
-  };
-
+  // Render blog detail
   if (selectedBlog) {
     return (
-      <div className="blog-detail-container">
+      <div style={styles.blogDetail}>
         <button
-          className="btn btn-back"
+          style={styles.backButton}
           onClick={() => setSelectedBlog(null)}
-          style={{ position: "absolute", top: "1rem", left: "1rem" }}
+          aria-label="Quay lại trang chủ"
         >
           ← Quay lại
         </button>
-        <h2 className="blog-detail-title">{selectedBlog.tieu_de}</h2>
-        <img
-          className="blog-detail-image"
-          src={`http://localhost:5000/uploads/hinh_anh/${selectedBlog.hinh_anh
-            .split("/")
-            .pop()}`}
-          alt={selectedBlog.tieu_de}
-          onError={(e) => {
-            console.error(`Failed to load image: ${e.target.src}`);
-            e.target.src = "/path/to/default-image.jpg";
-          }}
-        />
-        <p className="blog-detail-content">{selectedBlog.noi_dung}</p>
+        <h2 style={styles.blogTitle}>{selectedBlog.tieu_de}</h2>
+        <div style={styles.blogImageContainer}>
+          {selectedBlog.hinh_anh ? (
+            <img
+              src={`http://localhost:5000/uploads/hinh_anh/${selectedBlog.hinh_anh
+                .split("/")
+                .pop()}`}
+              alt={selectedBlog.tieu_de}
+              style={styles.blogImage}
+              onError={(e) => console.error(`Failed to load image: ${e.target.src}`)}
+            />
+          ) : (
+            <div style={styles.blogImagePlaceholder}>
+              📸 {selectedBlog.tieu_de}
+            </div>
+          )}
+        </div>
+        <p style={styles.blogContent}>{selectedBlog.noi_dung}</p>
       </div>
     );
   }
 
   return (
-    <div className="home-container">
-      {loadingTopDrinks && <p>Đang tải...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {!loadingTopDrinks && topDrinks.length > 0 && (
-        <section className="section">
-          <h2 className="section-title">
-            Đồ Uống Bán Chạy
-            <span className="category-separator"></span>
-          </h2>
-          <div className="drink-list">
-            {topDrinks.map((drink) => (
-              <DrinkCard
-                key={drink.ma_do_uong}
-                drink={drink}
-                onAddToCart={handleAddToCart}
-                onBuyNow={handleBuyNow}
-              />
+    <div style={styles.container}>
+      {/* Hero Section */}
+      <div style={styles.hero}>
+        <div style={styles.heroContent}>
+          <h1 style={styles.heroTitle}>Chào Mừng Đến Với DRINKHUB</h1>
+          <p style={styles.heroSubtitle}>
+            Khám phá hương vị tuyệt vời trong từng giọt
+          </p>
+        </div>
+        <div style={styles.heroDecoration}></div>
+      </div>
+
+      {/* Top Drinks Section */}
+      <section style={styles.section}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>🔥 Đồ Uống Bán Chạy</h2>
+          <div style={styles.titleUnderline}></div>
+        </div>
+
+        {loadingTopDrinks && <p style={styles.loading}>Đang tải...</p>}
+        {error && <p style={styles.error}>{error}</p>}
+        {!loadingTopDrinks && filteredTopDrinks.length === 0 && (
+          <p style={styles.emptyMessage}>Không có đồ uống bán chạy nào.</p>
+        )}
+
+        {filteredTopDrinks.length > 0 && (
+          <div style={styles.carouselContainer}>
+            <button
+              style={{
+                ...styles.scrollButton,
+                ...(scrollRefs.current["top-drinks"]?.dataset.canScrollLeft
+                  ? {}
+                  : styles.scrollButtonDisabled),
+              }}
+              onClick={() => scrollLeft("top-drinks")}
+              aria-label="Cuộn trái danh sách đồ uống bán chạy"
+            >
+              ←
+            </button>
+            <div
+              style={styles.carousel}
+              ref={(el) => (scrollRefs.current["top-drinks"] = el)}
+              role="region"
+              aria-label="Danh sách đồ uống bán chạy"
+            >
+              {filteredTopDrinks.map((d) => {
+                const giaGiam =
+                  d.giam_gia_phan_tram > 0
+                    ? Math.round(d.gia * (1 - d.giam_gia_phan_tram / 100))
+                    : d.gia;
+
+                return (
+                  <div key={d.ma_do_uong} style={styles.drinkCard} role="article">
+                    <div style={styles.cardImageContainer}>
+                      {d.hinh_anh ? (
+                        <img
+                          src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
+                          alt={d.ten_do_uong}
+                          style={styles.cardImage}
+                          onError={(e) =>
+                            console.error(`Failed to load image: ${e.target.src}`)
+                          }
+                        />
+                      ) : (
+                        <div style={styles.cardImagePlaceholder}>
+                          🥤 {d.ten_do_uong}
+                        </div>
+                      )}
+                      {d.giam_gia_phan_tram > 0 && (
+                        <div style={styles.discountBadge}>
+                          -{d.giam_gia_phan_tram}%
+                        </div>
+                      )}
+                    </div>
+                    <div style={styles.cardContent}>
+                      <h3 style={styles.cardTitle}>{d.ten_do_uong}</h3>
+                      <div style={styles.priceContainer}>
+                        {d.giam_gia_phan_tram > 0 ? (
+                          <>
+                            <span style={styles.originalPrice}>
+                              {Number(d.gia).toLocaleString()}đ
+                            </span>
+                            <span style={styles.salePrice}>
+                              {giaGiam.toLocaleString()}đ
+                            </span>
+                          </>
+                        ) : (
+                          <span style={styles.regularPrice}>
+                            {Number(d.gia).toLocaleString()}đ
+                          </span>
+                        )}
+                      </div>
+                      <p style={styles.soldInfo}>Đã bán: {d.total_quantity} đơn</p>
+                      <div style={styles.buttonGroup}>
+                        <button
+                          style={styles.addToCartBtn}
+                          onClick={() => handleThemGioHang(d)}
+                        >
+                          Thêm vào giỏ
+                        </button>
+                        <button
+                          style={styles.buyNowBtn}
+                          onClick={() => handleBuyNow(d)}
+                        >
+                          Mua ngay
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              style={{
+                ...styles.scrollButton,
+                ...styles.scrollButtonRight,
+                ...(scrollRefs.current["top-drinks"]?.dataset.canScrollRight
+                  ? {}
+                  : styles.scrollButtonDisabled),
+              }}
+              onClick={() => scrollRight("top-drinks")}
+              aria-label="Cuộn phải danh sách đồ uống bán chạy"
+            >
+              →
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* Drinks by Category */}
+      <section style={styles.section}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>☕ Danh Sách Đồ Uống</h2>
+          <div style={styles.titleUnderline}></div>
+        </div>
+
+        {loadingDrinks && <p style={styles.loading}>Đang tải...</p>}
+        {error && <p style={styles.error}>{error}</p>}
+        {!loadingDrinks && danhMucList.length === 0 && (
+          <p style={styles.emptyMessage}>Không có danh mục nào.</p>
+        )}
+
+        {danhMucList.map((dm) => (
+          <div key={dm.ma_danh_muc} style={styles.categorySection}>
+            <h3 style={styles.categoryTitle}>{dm.ten_danh_muc}</h3>
+            {filteredDoUongByDanhMuc[dm.ma_danh_muc]?.length > 0 ? (
+              <div style={styles.carouselContainer}>
+                <button
+                  style={{
+                    ...styles.scrollButton,
+                    ...(scrollRefs.current[dm.ma_danh_muc]?.dataset.canScrollLeft
+                      ? {}
+                      : styles.scrollButtonDisabled),
+                  }}
+                  onClick={() => scrollLeft(dm.ma_danh_muc)}
+                  aria-label={`Cuộn trái danh sách đồ uống ${dm.ten_danh_muc}`}
+                >
+                  ←
+                </button>
+                <div
+                  style={styles.carousel}
+                  ref={(el) => (scrollRefs.current[dm.ma_danh_muc] = el)}
+                  role="region"
+                  aria-label={`Danh sách đồ uống ${dm.ten_danh_muc}`}
+                >
+                  {filteredDoUongByDanhMuc[dm.ma_danh_muc].map((d) => {
+                    const giaGiam =
+                      d.giam_gia_phan_tram > 0
+                        ? Math.round(d.gia * (1 - d.giam_gia_phan_tram / 100))
+                        : d.gia;
+
+                    return (
+                      <div key={d.ma_do_uong} style={styles.drinkCard} role="article">
+                        <div style={styles.cardImageContainer}>
+                          {d.hinh_anh ? (
+                            <img
+                              src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
+                              alt={d.ten_do_uong}
+                              style={styles.cardImage}
+                              onError={(e) =>
+                                console.error(`Failed to load image: ${e.target.src}`)
+                              }
+                            />
+                          ) : (
+                            <div style={styles.cardImagePlaceholder}>
+                              🥤 {d.ten_do_uong}
+                            </div>
+                          )}
+                          {d.giam_gia_phan_tram > 0 && (
+                            <div style={styles.discountBadge}>
+                              -{d.giam_gia_phan_tram}%
+                            </div>
+                          )}
+                        </div>
+                        <div style={styles.cardContent}>
+                          <h3 style={styles.cardTitle}>{d.ten_do_uong}</h3>
+                          <div style={styles.priceContainer}>
+                            {d.giam_gia_phan_tram > 0 ? (
+                              <>
+                                <span style={styles.originalPrice}>
+                                  {Number(d.gia).toLocaleString()}đ
+                                </span>
+                                <span style={styles.salePrice}>
+                                  {giaGiam.toLocaleString()}đ
+                                </span>
+                              </>
+                            ) : (
+                              <span style={styles.regularPrice}>
+                                {Number(d.gia).toLocaleString()}đ
+                              </span>
+                            )}
+                          </div>
+                          <p style={styles.description}>{d.mo_ta || "Không có mô tả"}</p>
+                          <div style={styles.buttonGroup}>
+                            <button
+                              style={styles.addToCartBtn}
+                              onClick={() => handleThemGioHang(d)}
+                              aria-label={`Thêm ${d.ten_do_uong} vào giỏ hàng`}
+                            >
+                              Thêm vào giỏ
+                            </button>
+                            <button
+                              style={styles.buyNowBtn}
+                              onClick={() => handleBuyNow(d)}
+                            >
+                              Mua ngay
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button
+                  style={{
+                    ...styles.scrollButton,
+                    ...styles.scrollButtonRight,
+                    ...(scrollRefs.current[dm.ma_danh_muc]?.dataset.canScrollRight
+                      ? {}
+                      : styles.scrollButtonDisabled),
+                  }}
+                  onClick={() => scrollRight(dm.ma_danh_muc)}
+                  aria-label={`Cuộn phải danh sách đồ uống ${dm.ten_danh_muc}`}
+                >
+                  →
+                </button>
+              </div>
+            ) : (
+              <p style={styles.emptyMessage}>
+                Không tìm thấy đồ uống nào trong danh mục này.
+              </p>
+            )}
+          </div>
+        ))}
+      </section>
+
+      {/* Blog Section */}
+      <section style={styles.section}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>📝 Danh Sách Blog</h2>
+          <div style={styles.titleUnderline}></div>
+        </div>
+
+        {loadingBlogs && <p style={styles.loading}>Đang tải...</p>}
+        {!loadingBlogs && blogs.length === 0 && (
+          <p style={styles.emptyMessage}>Không có blog nào.</p>
+        )}
+
+        <div style={styles.carouselContainer}>
+          <button
+            style={{
+              ...styles.scrollButton,
+              ...(scrollRefs.current["blog"]?.dataset.canScrollLeft
+                ? {}
+                : styles.scrollButtonDisabled),
+            }}
+            onClick={() => scrollLeft("blog")}
+            aria-label="Cuộn trái danh sách blog"
+          >
+            ←
+          </button>
+          <div
+            style={styles.carousel}
+            ref={(el) => (scrollRefs.current["blog"] = el)}
+            role="region"
+            aria-label="Danh sách blog"
+          >
+            {blogs.map((blog) => (
+              <div
+                key={blog.ma_blog}
+                style={styles.blogCard}
+                onClick={() => setSelectedBlog(blog)}
+                role="article"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && setSelectedBlog(blog)}
+                aria-label={`Xem chi tiết ${blog.tieu_de}`}
+              >
+                <div style={styles.blogImageContainer}>
+                  {blog.hinh_anh ? (
+                    <img
+                      src={`http://localhost:5000/uploads/hinh_anh/${blog.hinh_anh
+                        .split("/")
+                        .pop()}`}
+                      alt={blog.tieu_de}
+                      style={styles.blogImage}
+                    />
+                  ) : (
+                    <div style={styles.blogImagePlaceholder}>📖 {blog.tieu_de}</div>
+                  )}
+                </div>
+                <div style={styles.blogCardContent}>
+                  <h3 style={styles.blogCardTitle}>{blog.tieu_de}</h3>
+                  <p style={styles.readMore}>Đọc thêm →</p>
+                </div>
+              </div>
             ))}
           </div>
-        </section>
-      )}
+          <button
+            style={{
+              ...styles.scrollButton,
+              ...styles.scrollButtonRight,
+              ...(scrollRefs.current["blog"]?.dataset.canScrollRight
+                ? {}
+                : styles.scrollButtonDisabled),
+            }}
+            onClick={() => scrollRight("blog")}
+            aria-label="Cuộn phải danh sách blog"
+          >
+            →
+          </button>
+        </div>
+      </section>
 
-      {loadingDrinks && <p>Đang tải...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {!loadingDrinks && danhMucList.length > 0 && (
-        <section className="section">
-          <h2 className="section-title">
-            Danh Sách Đồ Uống
-            <span className="category-separator"></span>
-          </h2>
-          {danhMucList.map((dm) => (
-            <div key={dm.ma_danh_muc} className="category-section">
-              <h3 className="category-title">
-                {removeEmojis(dm.ten_danh_muc)}
-                <span className="category-separator"></span>
+      {/* Modal */}
+      {showModal && selectedDrink && (
+        <div style={styles.modal} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle} id="modal-title">
+                {isBuyNow ? "🛒 Mua ngay" : "Thêm vào giỏ hàng"}
               </h3>
-              <Carousel
-                items={doUongByDanhMuc[dm.ma_danh_muc] || []}
-                scrollKey={`category-${dm.ma_danh_muc}`}
-                renderItem={(drink) => (
-                  <DrinkCard
-                    drink={drink}
-                    onAddToCart={handleAddToCart}
-                    onBuyNow={handleBuyNow}
-                  />
-                )}
-              />
+              <h4 style={styles.modalDrinkName}>{selectedDrink.ten_do_uong}</h4>
             </div>
-          ))}
-        </section>
-      )}
-
-      {loadingBlogs && <p>Đang tải...</p>}
-      {!loadingBlogs && blogs.length > 0 && (
-        <section className="section">
-          <h2 className="section-title">
-            Danh Sách Blog
-            <span className="category-separator"></span>
-          </h2>
-          <Carousel
-            items={blogs}
-            scrollKey="blog"
-            renderItem={(blog) => (
-              <div className="blog-card" onClick={() => setSelectedBlog(blog)}>
-                <img
-                  className="blog-card-image"
-                  src={`http://localhost:5000/uploads/hinh_anh/${blog.hinh_anh
-                    .split("/")
-                    .pop()}`}
-                  alt={blog.tieu_de}
-                  onError={(e) => {
-                    console.error(`Failed to load image: ${e.target.src}`);
-                    e.target.src = "/path/to/default-image.jpg";
-                  }}
-                />
-                <h3 className="blog-card-title">{blog.tieu_de}</h3>
+            <div style={styles.modalBody}>
+              {/* Quantity Selector */}
+              <div style={styles.optionGroup}>
+                <p style={styles.optionLabel}>Số lượng</p>
+                <div>
+                  <button
+                    style={styles.quantityBtn}
+                    onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                    aria-label="Giảm số lượng"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) =>
+                      setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                    }
+                    style={styles.quantityInput}
+                    aria-label="Số lượng"
+                  />
+                  <button
+                    style={styles.quantityBtn}
+                    onClick={() => setQuantity((prev) => prev + 1)}
+                    aria-label="Tăng số lượng"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-            )}
-          />
-        </section>
-      )}
 
-      {showCartPopup && selectedDrink && (
-        <CartPopup
-          drink={selectedDrink}
-          options={drinkOptions}
-          quantity={cartQuantity}
-          setQuantity={setCartQuantity}
-          selectedOptions={selectedOptions}
-          setSelectedOptions={setSelectedOptions}
-          onConfirm={handleConfirmAddToCart}
-          onCancel={handleCancel}
-        />
-      )}
-      {showDetailModal && selectedDrink && (
-        <DetailModal
-          drink={selectedDrink}
-          options={drinkOptions}
-          selectedOptions={selectedOptions}
-          setSelectedOptions={setSelectedOptions}
-          onClose={handleCloseDetailModal}
-        />
+              {Object.entries(drinkOptions).map(([loai, opts]) => (
+                <div key={loai} style={styles.optionGroup}>
+                  <p style={styles.optionLabel}>{loai}</p>
+                  <div style={styles.optionList}>
+                    {opts.map((opt) => (
+                      <label
+                        key={`${loai}-${opt.gia_tri}`}
+                        style={styles.optionItem}
+                        tabIndex={0}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleChangeOption(loai, opt.gia_tri)
+                        }
+                      >
+                        <input
+                          type="radio"
+                          name={loai}
+                          value={opt.gia_tri}
+                          checked={selectedOptions[loai]?.gia_tri === opt.gia_tri}
+                          onChange={() => handleChangeOption(loai, opt.gia_tri)}
+                          style={styles.radioInput}
+                          aria-label={`${loai}: ${opt.gia_tri}`}
+                        />
+                        <span style={styles.optionText}>
+                          {opt.gia_tri}
+                          {opt.gia_them > 0 && (
+                            <span style={styles.extraPrice}>
+                              (+{opt.gia_them.toLocaleString()}đ)
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div style={styles.totalPrice}>
+                💰 Tổng tiền: <strong>{tinhTongTien.toLocaleString()}đ</strong>
+              </div>
+            </div>
+            <div style={styles.modalFooter}>
+              <button
+                style={styles.cancelBtn}
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedOptions({});
+                  setQuantity(1);
+                }}
+                aria-label="Hủy"
+              >
+                Hủy
+              </button>
+              <button
+                style={styles.confirmBtn}
+                onClick={handleXacNhan}
+                aria-label={isBuyNow ? "Xác nhận mua" : "Thêm vào giỏ hàng"}
+              >
+                {isBuyNow ? "Xác nhận mua" : "Thêm vào giỏ hàng"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
